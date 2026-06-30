@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equilibrium: 方程平衡之旅</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .bracket-bubble { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); border-color: rgba(147, 51, 234, 0.5); }
+            50% { transform: scale(1.02); border-color: rgba(147, 51, 234, 1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid font-bold text-xl">⚖️</i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Equilibrium</h1>
+                    <p class="text-xs text-slate-400">方程五维熟练度沉浸式学习系统</p>
+                </div>
+            </div>
+            <div class="hidden md:flex space-x-4 text-xs">
+                <span class="px-2 py-1 bg-emerald-950 text-emerald-400 rounded border border-emerald-800" title="概念理解">🧩 概念理解 (CU)</span>
+                <span class="px-2 py-1 bg-blue-950 text-blue-400 rounded border border-blue-800" title="程序熟练度">⚡ 程序熟练度 (PU)</span>
+                <span class="px-2 py-1 bg-amber-950 text-amber-400 rounded border border-amber-800" title="策略能力">🎯 策略能力 (SC)</span>
+                <span class="px-2 py-1 bg-purple-950 text-purple-400 rounded border border-purple-800" title="渐进推理">🧠 渐进推理 (AR)</span>
+                <span class="px-2 py-1 bg-rose-950 text-rose-400 rounded border border-rose-800" title="积极倾向">🔥 积极倾向 (PD)</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <aside class="lg:col-span-1 bg-slate-800/50 p-4 rounded-xl border border-slate-700 h-fit">
+            <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-layer-group mr-2"></i> 核心课程关卡</h2>
+            <div class="space-y-2" id="level-list">
+                </div>
+        </aside>
+
+        <section class="lg:col-span-2 flex flex-col space-y-4">
+            
+            <div class="bg-indigo-950/40 border border-indigo-900/60 p-4 rounded-xl flex flex-col space-y-3">
+                <div class="flex items-start space-x-3">
+                    <span class="text-xl">🚀</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-indigo-300" id="quest-title">正在加载任务...</h3>
+                        <p class="text-xs text-slate-300 mt-1" id="quest-desc">加载情境描述中...</p>
+                    </div>
+                </div>
+                
+                <div id="modeling-zone" class="bg-slate-900/60 p-3 rounded-lg border border-indigo-800/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="text-xs text-indigo-200 font-medium">
+                        <i class="fa-solid fa-pen-ruler mr-1"></i> 请将上方文字情境转化为代数方程：
+                    </div>
+                    <div class="flex w-full sm:w-auto items-center space-x-2">
+                        <input type="text" id="equation-input" placeholder="例如: x + 3 = 8" class="flex-1 sm:w-44 px-3 py-1.5 text-sm bg-slate-800 border border-slate-600 rounded text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono text-center">
+                        <button onclick="verifyModelingFormula()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded text-xs font-bold text-white shadow transition cursor-pointer">
+                            提交验证
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="core-interactive-container" class="space-y-4 relative opacity-30 pointer-events-none transition-all duration-500">
+                <div id="lock-overlay" class="absolute inset-0 bg-slate-900/10 z-40 flex flex-col items-center justify-center text-sm font-bold text-indigo-400">
+                    <span class="bg-slate-950/90 px-4 py-2 rounded-lg border border-slate-700 shadow-xl backdrop-blur-xs">
+                        <i class="fa-solid fa-lock mr-2 text-amber-500 animate-pulse"></i>请先在上方输入正确的方程以解锁平衡天平
+                    </span>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-inner relative overflow-hidden flex flex-col items-center justify-center min-h-[160px]">
+                    <div class="absolute top-2 left-3 text-xs text-slate-500 font-mono">PHASE 1: 概念天平状态</div>
+                    
+                    <div class="w-full max-w-sm flex flex-col items-center">
+                        <div class="w-full flex justify-between items-end px-6 transition-transform duration-500" id="balance-beam">
+                            <div class="flex flex-col items-center space-y-1 w-5/12 bg-slate-700/40 p-3 rounded-t-lg border-b-4 border-indigo-500 text-center">
+                                <span class="text-xs text-slate-400 mb-1">左盘 (LHS)</span>
+                                <div class="flex flex-wrap gap-1 justify-center" id="left-pan-visual"></div>
+                            </div>
+                            <div class="w-2 h-16 bg-slate-600 self-center origin-bottom"></div>
+                            <div class="flex flex-col items-center space-y-1 w-5/12 bg-slate-700/40 p-3 rounded-t-lg border-b-4 border-emerald-500 text-center">
+                                <span class="text-xs text-slate-400 mb-1">右盘 (RHS)</span>
+                                <div class="flex flex-wrap gap-1 justify-center" id="right-pan-visual"></div>
+                            </div>
+                        </div>
+                        <div class="w-24 h-3 bg-slate-600 rounded-full"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 relative flex flex-col items-center justify-center min-h-[180px]">
+                    <div class="absolute top-2 left-3 text-xs text-slate-500 font-mono">PHASE 2: 动态代数交互区</div>
+                    
+                    <div class="text-2xl font-bold tracking-wide my-4 flex items-center space-x-2 text-center" id="algebraic-display"></div>
+
+                    <div class="flex items-center space-x-2 mt-2">
+                        <span id="status-indicator" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <div id="operation-feedback" class="text-xs font-medium text-slate-300 italic">请先在上方代数式中点击选中一个你想消去或处理的项 (Term)</div>
+                    </div>
+                </div>
+
+                <div id="toolbox" class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-2 opacity-40 pointer-events-none transition-all duration-300">
+                    <button onclick="applyStrategy('inverse_add_sub')" class="p-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer">
+                        <span>⚖️ 两边加/减</span>
+                    </button>
+                    <button onclick="applyStrategy('inverse_mul_div')" class="p-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer">
+                        <span>✖️ 两边乘/除</span>
+                    </button>
+                    <button onclick="applyStrategy('combine_terms')" class="p-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer">
+                        <span>🧲 合并同类项</span>
+                    </button>
+                    <button onclick="applyStrategy('pop_bracket')" class="p-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer">
+                        <span>🫧 撤去括号泡泡</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-1 flex flex-col space-y-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col flex-1 min-h-[300px]">
+                <div class="text-xs text-slate-500 font-mono mb-2">PHASE 3: 智能苏格拉底辩护系统</div>
+                
+                <div class="flex items-center space-x-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700 mb-4">
+                    <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-xl shadow-lg">🤖</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-indigo-400">导学向导: Equi</h4>
+                        <span class="text-[10px] px-1.5 py-0.5 bg-indigo-950 text-indigo-300 rounded border border-indigo-800">思维反思检测中</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-slate-900/40 rounded-lg p-3 border border-slate-800 overflow-y-auto mb-4 text-xs space-y-3" id="ai-chat-box"></div>
+
+                <div class="space-y-2 hidden" id="defense-zone">
+                    <span class="text-[10px] text-purple-400 font-bold block uppercase tracking-wider">💡 选出你此步骤的逻辑依据(AR推理)：</span>
+                    <div class="grid grid-cols-1 gap-2" id="defense-options"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 p-3 text-center text-xs text-slate-500">
+        Equilibrium Engine v1.2.0 © 2026 基于五大数学熟练度模型强化开发
+    </footer>
+
+    <script>
+        // 1. 核心大纲数据（支持多重接受的标准对方程格式校验）
+        const levelsData = [
+            { id: 1, name: "LEVEL 1: 加减逆元", expr: "x + 3 = 8", validAnswers: ["x+3=8", "3+x=8"], targetTerm: "+3", quest: "药剂调配平衡", desc: "神秘容器中已有 3 克试剂，总重量需达到 8 克。如何算出未知试剂 x ？", leftItems: ['x', '1', '1', '1'], rightItems: ['1','1','1','1','1','1','1','1'], type: 'basic', defenseQ: "为什么方程两边可以同时减去 3？", defenseA: [
+                {t: "这是等式性质：两边同时减去相同数值，等式依然保持平衡公理。", c: true},
+                {t: "因为我想把数字直接移到右边，变号是死记硬背的规则。", c: false}
+            ]},
+            { id: 2, name: "LEVEL 2: 正负整数乘除", expr: "3x = 12", validAnswers: ["3x=12", "x*3=12", "3*x=12"], targetTerm: "3x", quest: "量子芯片克隆", desc: "3 组相同的核心纳米轨道总长为 12 微米，单组长度 x 是多少？", leftItems: ['x', 'x', 'x'], rightItems: ['4','4','4'], type: 'muldiv', defenseQ: "为了求出 x 的值，你刚刚执行了什么策略？", defenseA: [
+                {t: "把总重量平均切成 3 份（两边各除以 3），得到 1 份 x 的平衡重量。", c: true},
+                {t: "两边同时减去 3，消除变量前的系数。", c: false}
+            ]},
+            { id: 3, name: "LEVEL 3: 涉及「-x」项", expr: "7 - x = 4", validAnswers: ["7-x=4", "-x+7=4"], targetTerm: "-x", quest: "镜像反物质湮灭", desc: "正能量晶体 7 个与反物质未知箱 -x 组合后，坍缩平衡为 4。如何解出正物质 x？", leftItems: ['7', '-x'], rightItems: ['4'], type: 'negative_x', defenseQ: "处理「-x」最灵活且符合逻辑的策略是什么？", defenseA: [
+                {t: "把 -x 移到等号另一盘变成 +x，或两边同乘 -1 逆转维度。", c: true},
+                {t: "直接擦掉负号，因为负数在方程里没有现实意义。", c: false}
+            ]},
+            { id: 4, name: "LEVEL 4: 合併同類項", expr: "3x + 2x = 15", validAnswers: ["3x+2x=15", "2x+3x=15"], targetTerm: "3x", quest: "磁力电荷集结", desc: "左盘散落着两批同性质的磁性变量电荷（3x 与 2x），它们能够融合成什么？", leftItems: ['3x', '2x'], rightItems: ['15'], type: 'combine', defenseQ: "为什么 3x 与 2x 可以合并，而 3x 与 2 不能合并？", defenseA: [
+                {t: "因为它们拥有相同的代数特征（同类项），代表同一种未知单位。", c: true},
+                {t: "因为任何带字母的项在方程中都可以无条件加在一起。", c: false}
+            ]},
+            { id: 5, name: "LEVEL 5: 撤去括號", expr: "2(x + 3) = 14", validAnswers: ["2(x+3)=14", "2*(x+3)=14"], targetTerm: "2(x+3)", quest: "能量晶体解封", desc: "外层有力场括号包裹。2 倍的(整体包裹物)与 14 平衡，请先解开防护罩。", leftItems: ['2(x+3)'], rightItems: ['14'], type: 'bracket', defenseQ: "撤去括号时，外面的乘数 2 应该怎么分配？", defenseA: [
+                {t: "运用分配律，乘数 2 必须分别乘以括号内的变量 x 和常数 3。", c: true},
+                {t: "只需要乘以开头的 x，后面的常数 3 保持不变即可。", c: false}
+            ]},
+            { id: 6, name: "LEVEL 6: 消去分母", expr: "x / 4 = 3", validAnswers: ["x/4=3", "1/4x=3", "1/4*x=3"], targetTerm: "/ 4", quest: "液态重力引流", desc: "未知质量被稀释在 4 层流体分母中，平衡常数为 3，如何抽离分母流体？", leftItems: ['x/4'], rightItems: ['3'], type: 'denominator', defenseQ: "消除分母（除法关系）的逆运算是什么？", defenseA: [
+                {t: "两边同时扩大 4 倍（乘以 4），从而抵消分母的除法稀释效应。", c: true},
+                {t: "给右边加上 4，用加法来抵消除法。", c: false}
+            ]},
+            { id: 7, name: "LEVEL 7: 括號 + 分母", expr: "2(x - 1) / 3 = 4", validAnswers: ["2(x-1)/3=4", "(2(x-1))/3=4"], targetTerm: "/ 3", quest: "星际船闸调度", desc: "集成了分母流体与玻璃括号的多层复合方程。考验你的综合策略弹性选择！", leftItems: ['2(x-1)/3'], rightItems: ['4'], type: 'complex_7', defenseQ: "面对这种复合结构，你可以选择哪些正确路径？", defenseA: [
+                {t: "既可以先乘 3 消去分母，也可以先去括号，具有灵活的策略路径选择权。", c: true},
+                {t: "数学严格规定必须先消去分母，绝对不允许先处理括号。", c: false}
+            ]},
+            { id: 8, name: "LEVEL 8: 终极架构大师", expr: "3(x + 2) / 4 - 2 = 4", validAnswers: ["3(x+2)/4-2=4"], targetTerm: "- 2", quest: "终极时空遗迹修补", desc: "包含了括号、分母以及常数项合并的终极混乱空域。运用全部 5 维能力完成重构吧！", leftItems: ['3(x+2)/4', '-2'], rightItems: ['4'], type: 'master_8', defenseQ: "恭喜通关！回顾解题过程，什么是全套方程熟练度的核心？", defenseA: [
+                {t: "保持两边天平永远等量平衡，并能清晰解释每一步变形的逻辑原因。", c: true},
+                {t: "只要能快点凑出数字答案，中间偷懒不平衡也无所谓。", c: false}
+            ]}
+        ];
+
+        let currentLevel = null;
+        let selectedTerm = null; 
+        let activeStep = 0;      // 0: 建模阶段, 1: 选择目标项, 2: 变形操纵, 3: 推理辩护
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderLevelList();
+            loadLevel(1);
+        });
+
+        function renderLevelList() {
+            const listContainer = document.getElementById('level-list');
+            listContainer.innerHTML = '';
+            levelsData.forEach(lvl => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-lg text-xs font-medium flex items-center justify-between transition border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 cursor-pointer";
+                btn.id = `lvl-btn-${lvl.id}`;
+                btn.onclick = () => loadLevel(lvl.id);
+                btn.innerHTML = `
+                    <span>${lvl.name}</span>
+                    <span class="text-[10px] bg-slate-900/60 px-1.5 py-0.5 rounded text-indigo-400 font-mono">建模验证</span>
+                `;
+                listContainer.appendChild(btn);
+            });
+        }
+
+        // 加载新关卡（重置到 Phase 0）
+        function loadLevel(id) {
+            currentLevel = JSON.parse(JSON.stringify(levelsData.find(l => l.id === id))); 
+            activeStep = 0; // 重置到建模阶段
+            selectedTerm = null;
+
+            // 清空并聚焦方程输入框
+            const eqInput = document.getElementById('equation-input');
+            eqInput.value = '';
+            eqInput.disabled = false;
+            document.getElementById('modeling-zone').className = "bg-slate-900/60 p-3 rounded-lg border border-indigo-800/60 flex flex-col sm:flex-row items-center justify-between gap-3";
+
+            // 锁定核心交互区
+            lockCoreInteractive();
+
+            // 切换左侧高亮
+            levelsData.forEach(lvl => {
+                const b = document.getElementById(`lvl-btn-${lvl.id}`);
+                if(b) {
+                    b.className = lvl.id === id 
+                        ? "w-full text-left p-3 rounded-lg text-xs font-medium flex items-center justify-between transition border bg-indigo-600 border-indigo-400 text-white shadow-md cursor-pointer"
+                        : "w-full text-left p-3 rounded-lg text-xs font-medium flex items-center justify-between transition border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 cursor-pointer";
+                }
+            });
+
+            document.getElementById('quest-title').innerText = currentLevel.quest;
+            document.getElementById('quest-desc').innerText = currentLevel.desc;
+
+            // 隐藏右下角辩护区
+            document.getElementById('defense-zone').classList.add('hidden');
+
+            triggerAiDialogue(`你已接入任务：**${currentLevel.quest}**。<br>🎯 这是一个【以学生为中心】的探究测试。请仔细阅读上方的文字描述，并在右侧框中**手工输入正确的代数方程**（注意空格不限）。只有建模正确，平衡天平力场才会对你解锁！`);
+        }
+
+        // 新增：Phase 0 文字方程建模验证逻辑（SC 维度落地）
+        function verifyModelingFormula() {
+            if (!currentLevel || activeStep !== 0) return;
+
+            const userInput = document.getElementById('equation-input').value.replace(/\s+/g, '').toLowerCase();
+            
+            // 匹配关卡合法方程字典
+            const isMatch = currentLevel.validAnswers.some(ans => ans.replace(/\s+/g, '').toLowerCase() === userInput);
+
+            if (isMatch) {
+                activeStep = 1; // 进入 Phase 1
+                document.getElementById('equation-input').disabled = true;
+                document.getElementById('modeling-zone').className = "bg-emerald-950/40 p-3 rounded-lg border border-emerald-500/50 flex flex-col sm:flex-row items-center justify-between gap-3";
+                
+                // 完全激活并释放中央天平操作面板
+                unlockCoreInteractive();
+
+                // 刷新天平与代数展示
+                updateBalanceVisuals(currentLevel.leftItems, currentLevel.rightItems);
+                renderAlgebraicInteractive(currentLevel.expr);
+
+                document.getElementById('status-indicator').className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                document.getElementById('operation-feedback').innerText = "方程建模正确！请在下方代数式中点击选中你想消去的目标项 (Term)";
+                
+                triggerAiDialogue(`✨ **方程建模成功！** 你成功将文字翻译为代数模型 \`${currentLevel.expr}\`。天平力场已全面解锁，接下来**请在代数式中点击选中一个你想要消去、移动或合并的项**。`);
+            } else {
+                document.getElementById('modeling-zone').className = "bg-rose-950/40 p-3 rounded-lg border border-rose-500/60 flex flex-col sm:flex-row items-center justify-between gap-3 animate-headShake";
+                triggerAiDialogue(`⚠️ **建模未通过。** 仔细对照文字情境，未知数记为 x，请重新理清其中的数量关系和等量平衡再提交一次！`);
+            }
+        }
+
+        // 核心交互区锁控制
+        function lockCoreInteractive() {
+            document.getElementById('core-interactive-container').classList.add('opacity-30', 'pointer-events-none');
+            document.getElementById('lock-overlay').classList.remove('hidden');
+            lockToolbox();
+        }
+
+        function unlockCoreInteractive() {
+            document.getElementById('core-interactive-container').classList.remove('opacity-30', 'pointer-events-none');
+            document.getElementById('lock-overlay').classList.add('hidden');
+        }
+
+        // 渲染交互式可点选代数项
+        function renderAlgebraicInteractive(expressionString) {
+            const display = document.getElementById('algebraic-display');
+            display.innerHTML = '';
+
+            const parts = expressionString.split(/(\s+)/).filter(e => e.trim().length > 0);
+            
+            parts.forEach(part => {
+                const span = document.createElement('span');
+                if (part === '=') {
+                    span.className = "mx-3 text-slate-500 font-bold text-2xl select-none";
+                    span.innerText = "＝";
+                } else if (part === '+' || part === '-' || part === '/') {
+                    span.className = `px-2 py-0.5 rounded font-mono text-indigo-400 cursor-pointer transition hover:bg-indigo-950/60 border border-transparent unselected-term`;
+                    span.innerText = part;
+                    span.onclick = () => selectTermMechanic(part, span);
+                } else {
+                    let isBracket = part.includes('(') || part.includes(')');
+                    span.className = `px-3 py-1 rounded-md border text-base font-mono transition-all duration-200 cursor-pointer text-slate-100 unselected-term ${isBracket ? 'bracket-bubble border-purple-500/40 bg-purple-950/20 text-purple-200' : 'border-slate-600 bg-slate-700/50 hover:border-indigo-400'}`;
+                    span.innerText = part;
+                    span.onclick = () => selectTermMechanic(part, span);
+                }
+                display.appendChild(span);
+            });
+        }
+
+        // 点击锁定目标项
+        function selectTermMechanic(termText, element) {
+            if (activeStep >= 3) return; 
+
+            selectedTerm = termText;
+            activeStep = 2; // 进入操作运算阶段
+
+            document.querySelectorAll('.unselected-term').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'border-indigo-400', 'text-white', 'scale-105', 'ring-2', 'ring-indigo-500');
+            });
+
+            element.classList.add('bg-indigo-600', 'border-indigo-400', 'text-white', 'scale-105', 'ring-2', 'ring-indigo-500');
+            unlockToolbox();
+
+            document.getElementById('status-indicator').className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
+            document.getElementById('operation-feedback').innerText = `目标项 [ ${selectedTerm} ] 已锁定！请在下方工具箱选择对应的变形操作。`;
+            
+            triggerAiDialogue(`你成功锁定了目标项 \`${selectedTerm}\`。现在操作台工具箱已激活，请应用对应的**等式基本性质**消去或转换它！`);
+        }
+
+        function unlockToolbox() {
+            const box = document.getElementById('toolbox');
+            box.classList.remove('opacity-40', 'pointer-events-none');
+            box.classList.add('bg-slate-800', 'border-slate-600');
+        }
+
+        function lockToolbox() {
+            const box = document.getElementById('toolbox');
+            box.classList.add('opacity-40', 'pointer-events-none');
+            box.classList.remove('bg-slate-800', 'border-slate-600');
+        }
+
+        // 策略变形操纵引擎
+        function applyStrategy(strategyType) {
+            if(!currentLevel || !selectedTerm) return;
+
+            let feedbackText = "";
+            let nextExpressionState = "";
+            let isActionCorrect = false;
+
+            switch(strategyType) {
+                case 'inverse_add_sub':
+                    if(currentLevel.type === 'basic' && (selectedTerm === '3' || selectedTerm === '+')) {
+                        nextExpressionState = "x = 5";
+                        updateBalanceVisuals(['x'], ['5']);
+                        feedbackText = "🎯 变形成功！针对目标常数项 3，两边同时进行了减法逆元 (-3)！";
+                        isActionCorrect = true;
+                    } else if(currentLevel.type === 'master_8' && selectedTerm === '-2') {
+                        nextExpressionState = "3(x + 2) / 4 = 6";
+                        updateBalanceVisuals(['3(x+2)/4'], ['6']);
+                        feedbackText = "🎯 变形成功！针对孤立常数项 -2，两边同加 2 将其消去。";
+                        currentLevel.type = 'complex_7';
+                        currentLevel.expr = "3(x + 2) / 4 = 6";
+                        selectedTerm = null;
+                        lockToolbox();
+                    } else {
+                        feedbackText = `❌ 逻辑错误：你锁定的项是 [ ${selectedTerm} ]，两边加减无法将其合理消除。`;
+                    }
+                    break;
+
+                case 'inverse_mul_div':
+                    if(currentLevel.type === 'muldiv' && (selectedTerm === '3x' || selectedTerm === '5x')) {
+                        let finalAns = currentLevel.type === 'muldiv' && selectedTerm === '5x' ? "3" : "4";
+                        nextExpressionState = `x = ${finalAns}`;
+                        updateBalanceVisuals(['x'], [finalAns]);
+                        feedbackText = `🎯 变形成功！两边执行了除法逆元，成功求出单份未知数的值！`;
+                        isActionCorrect = true;
+                    } else if(currentLevel.type === 'denominator' && (selectedTerm === '/' || selectedTerm === '4')) {
+                        nextExpressionState = "x = 12";
+                        updateBalanceVisuals(['x'], ['12']);
+                        feedbackText = "🎯 变形成功！两边同时扩大了 4 倍，成功抽离了分母流体！";
+                        isActionCorrect = true;
+                    } else {
+                        feedbackText = `❌ 逻辑错误：使用乘除法无法有效简化你的选中目标项 [ ${selectedTerm} ]。`;
+                    }
+                    break;
+
+                case 'combine_terms':
+                    if(currentLevel.type === 'combine' && (selectedTerm === '3x' || selectedTerm === '2x')) {
+                        nextExpressionState = "5x = 15";
+                        updateBalanceVisuals(['5x'], ['15']);
+                        feedbackText = "🧲 吸附成功！同类未知项完美融合成 5x。";
+                        currentLevel.type = 'muldiv'; 
+                        currentLevel.expr = "5x = 15";
+                        selectedTerm = null;
+                        lockToolbox();
+                    } else {
+                        feedbackText = `❌ 合并失败：目前选中的 [ ${selectedTerm} ] 无法执行同类项磁吸。`;
+                    }
+                    break;
+
+                case 'pop_bracket':
+                    if(currentLevel.type === 'bracket' && currentLevel.leftItems[0].includes('(')) {
+                        nextExpressionState = "2x + 6 = 14";
+                        updateBalanceVisuals(['2x', '6'], ['14']);
+                        feedbackText = "🫧 泡沫破裂！对括号项成功执行了乘法分配律。";
+                        currentLevel.type = 'basic'; 
+                        currentLevel.expr = "2x + 6 = 14";
+                        selectedTerm = null;
+                        lockToolbox();
+                    } else {
+                        feedbackText = `❌ 破开失败：目标项 [ ${selectedTerm} ] 不具备需要分配律展开的力场括号。`;
+                    }
+                    break;
+            }
+
+            if(nextExpressionState) {
+                renderAlgebraicInteractive(nextExpressionState);
+            }
+            
+            if(isActionCorrect) {
+                enterDefensePhase();
+            } else if (!isActionCorrect && nextExpressionState === "") {
+                document.getElementById('status-indicator').className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+                document.getElementById('operation-feedback').innerText = feedbackText;
+            }
+        }
+
+        // 进入 Phase 3：推理辩护
+        function enterDefensePhase() {
+            activeStep = 3;
+            lockToolbox();
+            triggerAiDialogue("做得精妙绝伦！程序操作完成。请在右下方选择匹配的公理理由，为你的解题路径做出**最终的推理辩护**。");
+            
+            const defenseZone = document.getElementById('defense-zone');
+            const optionsContainer = document.getElementById('defense-options');
+            
+            defenseZone.classList.remove('hidden');
+            optionsContainer.innerHTML = '';
+
+            currentLevel.defenseA.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-2.5 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded text-xs transition duration-200 text-slate-300 flex items-start space-x-2 cursor-pointer";
+                btn.onclick = () => checkDefenseAnswer(opt.c, btn);
+                btn.innerHTML = `
+                    <span class="font-bold text-indigo-400 font-mono">${String.fromCharCode(65 + idx)}.</span>
+                    <span>${opt.t}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkDefenseAnswer(isCorrect, element) {
+            if(isCorrect) {
+                element.className = "w-full text-left p-2.5 bg-emerald-950 border border-emerald-500 rounded text-xs text-emerald-300 flex items-start space-x-2";
+                triggerAiDialogue(`🎉 **任务圆满达成！**<br>你已独立攻克了该级别的文字建模(SC)、目标项分离和逻辑推理(AR)。你在代数全链路上都展现了极高的数学熟练度！快开启下一个关卡！`);
+                document.getElementById('status-indicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                document.getElementById('operation-feedback').innerText = "🎉 恭喜！当前关卡 4 大解题环节已完美打通！";
+                updateBalanceVisuals(['x'], ['解']);
+            } else {
+                element.className = "w-full text-left p-2.5 bg-rose-950 border border-rose-500 rounded text-xs text-rose-300 flex items-start space-x-2";
+                triggerAiDialogue(`⚠️ 推理基础有些动摇。该选项在代数严谨性上无法自圆其说。请重新审视你这一步等量代换所依赖的真实公理。`);
+            }
+        }
+
+        function updateBalanceVisuals(leftArr, rightArr) {
+            const leftPan = document.getElementById('left-pan-visual');
+            const rightPan = document.getElementById('right-pan-visual');
+            leftPan.innerHTML = '';
+            rightPan.innerHTML = '';
+
+            leftArr.forEach(item => {
+                const box = document.createElement('span');
+                box.className = `px-2 py-1 text-xs rounded font-bold shadow-sm ${item.includes('x') ? 'bg-purple-600 text-white animate-bounce' : 'bg-slate-600 text-slate-200'}`;
+                box.innerText = item;
+                leftPan.appendChild(box);
+            });
+
+            rightArr.forEach(item => {
+                const box = document.createElement('span');
+                box.className = "px-2 py-1 text-xs rounded font-bold shadow-sm bg-emerald-600 text-white";
+                box.innerText = item;
+                rightPan.appendChild(box);
+            });
+
+            const beam = document.getElementById('balance-beam');
+            if(rightArr.length === 1 && rightArr[0] === '解') {
+                beam.style.transform = 'rotate(0deg)';
+            } else {
+                beam.style.transform = leftArr.length > rightArr.length ? 'rotate(-3deg)' : 'rotate(3deg)';
+            }
+        }
+
+        function triggerAiDialogue(text) {
+            const chatBox = document.getElementById('ai-chat-box');
+            chatBox.innerHTML = `<p class="leading-relaxed">${text}</p>`;
+        }
+    </script>
+</body>
+</html>
